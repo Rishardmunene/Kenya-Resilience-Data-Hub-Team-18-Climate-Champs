@@ -1,39 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { Pool } from 'pg';
-
-// Database connection
-const pool = new Pool({
-  user: process.env.DB_USER || 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  database: process.env.DB_NAME || 'kcrd_db',
-  password: process.env.DB_PASSWORD || 'password',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-});
+import { neon } from '@neondatabase/serverless';
 
 export async function POST(request: NextRequest) {
   try {
     const { email, password, firstName, lastName, organization } = await request.json();
 
-    // Validate input
     if (!email || !password || !firstName || !lastName) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Email, password, first name, and last name are required' },
         { status: 400 }
       );
     }
 
+    const sql = neon(process.env.DATABASE_URL!);
+    
     // Check if user already exists
-    const existingUser = await pool.query(
-      'SELECT id FROM users WHERE email = $1',
-      [email]
-    );
-
-    if (existingUser.rows.length > 0) {
+    const existingUsers = await sql`SELECT id FROM users WHERE email = ${email}`;
+    
+    if (existingUsers.length > 0) {
       return NextResponse.json(
-        { error: 'User already exists' },
+        { error: 'User with this email already exists' },
         { status: 409 }
       );
     }
@@ -43,27 +31,29 @@ export async function POST(request: NextRequest) {
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
     // Create user
-    const result = await pool.query(
-      'INSERT INTO users (email, password_hash, first_name, last_name, organization) VALUES ($1, $2, $3, $4, $5) RETURNING id, email, first_name, last_name, organization, role',
-      [email, passwordHash, firstName, lastName, organization]
-    );
+    const newUser = await sql`
+      INSERT INTO users (email, password_hash, first_name, last_name, organization, role)
+      VALUES (${email}, ${passwordHash}, ${firstName}, ${lastName}, ${organization || null}, 'user')
+      RETURNING id, email, first_name, last_name, organization, role, created_at
+    `;
 
-    const user = result.rows[0];
+    const user = newUser[0];
 
     // Generate JWT token
     const token = jwt.sign(
-      { userId: user.id },
-      process.env.JWT_SECRET || 'your-secret-key',
-      { expiresIn: '7d' }
+      { 
+        userId: user.id, 
+        email: user.email, 
+        role: user.role 
+      },
+      process.env.JWT_SECRET || 'your-super-secret-jwt-key',
+      { expiresIn: '24h' }
     );
-
-    // Remove password from response
-    const { password_hash, ...userWithoutPassword } = user;
 
     return NextResponse.json({
       message: 'User registered successfully',
       token,
-      user: userWithoutPassword
+      user
     });
 
   } catch (error) {

@@ -1,23 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { Pool } from 'pg';
-
-// Database connection
-const pool = new Pool({
-  user: process.env.DB_USER || 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  database: process.env.DB_NAME || 'kcrd_db',
-  password: process.env.DB_PASSWORD || 'password',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-});
+import { neon } from '@neondatabase/serverless';
 
 export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json();
 
-    // Validate input
     if (!email || !password) {
       return NextResponse.json(
         { error: 'Email and password are required' },
@@ -25,41 +14,44 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const sql = neon(process.env.DATABASE_URL!);
+    
     // Find user by email
-    const result = await pool.query(
-      'SELECT id, email, password_hash, first_name, last_name, organization, role FROM users WHERE email = $1',
-      [email]
-    );
-
-    if (result.rows.length === 0) {
+    const users = await sql`SELECT * FROM users WHERE email = ${email}`;
+    
+    if (users.length === 0) {
       return NextResponse.json(
-        { error: 'Invalid credentials' },
+        { error: 'Invalid email or password' },
         { status: 401 }
       );
     }
 
-    const user = result.rows[0];
+    const user = users[0];
 
     // Verify password
     const isValidPassword = await bcrypt.compare(password, user.password_hash);
-
+    
     if (!isValidPassword) {
       return NextResponse.json(
-        { error: 'Invalid credentials' },
+        { error: 'Invalid email or password' },
         { status: 401 }
       );
     }
 
     // Generate JWT token
     const token = jwt.sign(
-      { userId: user.id },
-      process.env.JWT_SECRET || 'your-secret-key',
-      { expiresIn: '7d' }
+      { 
+        userId: user.id, 
+        email: user.email, 
+        role: user.role 
+      },
+      process.env.JWT_SECRET || 'your-super-secret-jwt-key',
+      { expiresIn: '24h' }
     );
 
-    // Remove password from response
+    // Return user data (without password) and token
     const { password_hash, ...userWithoutPassword } = user;
-
+    
     return NextResponse.json({
       message: 'Login successful',
       token,

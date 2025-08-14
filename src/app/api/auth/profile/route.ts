@@ -1,18 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
-import { Pool } from 'pg';
+import { neon } from '@neondatabase/serverless';
 
-// Database connection
-const pool = new Pool({
-  user: process.env.DB_USER || 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  database: process.env.DB_NAME || 'kcrd_db',
-  password: process.env.DB_PASSWORD || 'password',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-});
-
-// Helper function to verify JWT token
 function verifyToken(authHeader: string | null) {
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return null;
@@ -21,7 +10,7 @@ function verifyToken(authHeader: string | null) {
   const token = authHeader.substring(7);
   
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as any;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-super-secret-jwt-key') as any;
     return decoded;
   } catch (error) {
     return null;
@@ -35,32 +24,28 @@ export async function GET(request: NextRequest) {
 
     if (!decoded) {
       return NextResponse.json(
-        { error: 'Access token required' },
+        { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    // Get user from database
-    const result = await pool.query(
-      'SELECT id, email, first_name, last_name, role, organization FROM users WHERE id = $1',
-      [decoded.userId]
-    );
-
-    if (result.rows.length === 0) {
+    const sql = neon(process.env.DATABASE_URL!);
+    
+    const users = await sql`SELECT id, email, first_name, last_name, organization, role, created_at FROM users WHERE id = ${decoded.userId}`;
+    
+    if (users.length === 0) {
       return NextResponse.json(
-        { error: 'Invalid token' },
-        { status: 401 }
+        { error: 'User not found' },
+        { status: 404 }
       );
     }
-
-    const user = result.rows[0];
 
     return NextResponse.json({
-      user
+      user: users[0]
     });
 
   } catch (error) {
-    console.error('Profile error:', error);
+    console.error('Profile fetch error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -75,31 +60,32 @@ export async function PUT(request: NextRequest) {
 
     if (!decoded) {
       return NextResponse.json(
-        { error: 'Access token required' },
+        { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
     const { firstName, lastName, organization } = await request.json();
 
-    // Update user profile
-    const result = await pool.query(
-      'UPDATE users SET first_name = $1, last_name = $2, organization = $3 WHERE id = $4 RETURNING id, email, first_name, last_name, role, organization',
-      [firstName, lastName, organization, decoded.userId]
-    );
+    const sql = neon(process.env.DATABASE_URL!);
+    
+    const updatedUser = await sql`
+      UPDATE users 
+      SET first_name = ${firstName}, last_name = ${lastName}, organization = ${organization || null}, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ${decoded.userId}
+      RETURNING id, email, first_name, last_name, organization, role, created_at, updated_at
+    `;
 
-    if (result.rows.length === 0) {
+    if (updatedUser.length === 0) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
       );
     }
 
-    const user = result.rows[0];
-
     return NextResponse.json({
       message: 'Profile updated successfully',
-      user
+      user: updatedUser[0]
     });
 
   } catch (error) {
