@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    appDir: true,
     serverComponentsExternalPackages: ['@prisma/client'],
   },
   output: 'standalone',
@@ -35,7 +34,7 @@ const nextConfig = {
     return [
       {
         source: '/api/external/:path*',
-        destination: `${process.env.API_BASE_URL}/:path*`,
+        destination: `${process.env.API_BASE_URL || 'http://localhost:8000'}/:path*`,
       },
     ];
   },

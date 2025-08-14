@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/providers/Providers';
@@ -13,7 +13,6 @@ export const metadata: Metadata = {
   description: 'A web-based decision-support tool for environmental insights and climate resilience in Kenya',
   keywords: 'climate, resilience, dashboard, Kenya, environment, data, analytics',
   authors: [{ name: 'Team 18 Climate Champs' }],
-  viewport: 'width=device-width, initial-scale=1',
   robots: 'index, follow',
   openGraph: {
     title: 'Kenya Climate Resilience Dashboard',
@@ -26,6 +25,11 @@ export const metadata: Metadata = {
     title: 'Kenya Climate Resilience Dashboard',
     description: 'Empowering decision-makers with real-time environmental insights',
   },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({
