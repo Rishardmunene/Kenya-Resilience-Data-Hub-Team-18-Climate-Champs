@@ -9,7 +9,7 @@ import { ContactSection } from '@/components/landing/ContactSection';
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pt-16">
       <Header />
       <main>
         <HeroSection />

@@ -1,10 +1,29 @@
 'use client';
 
-import { useState } from 'react';
-import { BellIcon, CogIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { BellIcon, CogIcon, UserCircleIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 
 export function DashboardHeader() {
   const [selectedRegion, setSelectedRegion] = useState('All Kenya');
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    // Get user data from localStorage
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  }, []);
+
+  const handleSignOut = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setProfileMenuOpen(false);
+    router.push('/');
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -46,12 +65,43 @@ export function DashboardHeader() {
             <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
               <CogIcon className="h-5 w-5" />
             </button>
-            <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
-              <UserCircleIcon className="h-5 w-5" />
-            </button>
+            
+            {/* Profile Menu */}
+            <div className="relative">
+              <button 
+                onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+                className="flex items-center space-x-1 p-2 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <UserCircleIcon className="h-5 w-5" />
+                <ChevronDownIcon className="h-4 w-4" />
+              </button>
+              
+              {profileMenuOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                  <div className="px-4 py-2 text-sm text-gray-700 border-b border-gray-100">
+                    <div className="font-medium">{user?.firstName} {user?.lastName}</div>
+                    <div className="text-gray-500">{user?.email}</div>
+                  </div>
+                  <button
+                    onClick={handleSignOut}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
+      
+      {/* Click outside to close profile menu */}
+      {profileMenuOpen && (
+        <div 
+          className="fixed inset-0 z-40" 
+          onClick={() => setProfileMenuOpen(false)}
+        />
+      )}
     </div>
   );
 }

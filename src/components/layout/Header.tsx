@@ -16,9 +16,7 @@ const navigation = [
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<any>(null);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -29,7 +27,7 @@ export function Header() {
     
     if (token && userData) {
       setIsAuthenticated(true);
-      setUser(JSON.parse(userData));
+      // setUser(JSON.parse(userData)); // This line was removed as per the edit hint
     }
   }, []);
 
@@ -42,21 +40,12 @@ export function Header() {
     }
   };
 
-  const handleSignOut = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setIsAuthenticated(false);
-    setUser(null);
-    setProfileMenuOpen(false);
-    router.push('/');
-  };
-
   // Don't show landing page navigation on dashboard
   const isDashboard = pathname === '/dashboard';
   const isLoginPage = pathname === '/login';
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-sm shadow-sm border-b border-gray-200 transition-all duration-300 hover:bg-white/95">
       <nav className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8" aria-label="Global">
         <div className="flex lg:flex-1">
           <Link href="/" className="-m-1.5 p-1.5">
@@ -100,41 +89,7 @@ export function Header() {
         
         <div className="hidden lg:flex lg:flex-1 lg:justify-end">
           <div className="flex items-center space-x-4">
-            {isAuthenticated ? (
-              // Authenticated user - show profile menu
-              <div className="relative">
-                <button
-                  onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                  className="flex items-center space-x-2 text-sm font-medium text-gray-900 hover:text-primary-600 focus:outline-none"
-                >
-                  <UserCircleIcon className="h-6 w-6" />
-                  <span>{user?.firstName || 'User'}</span>
-                  <ChevronDownIcon className="h-4 w-4" />
-                </button>
-                
-                {profileMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
-                    <div className="px-4 py-2 text-sm text-gray-700 border-b border-gray-100">
-                      <div className="font-medium">{user?.firstName} {user?.lastName}</div>
-                      <div className="text-gray-500">{user?.email}</div>
-                    </div>
-                    <Link
-                      href="/dashboard"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => setProfileMenuOpen(false)}
-                    >
-                      Dashboard
-                    </Link>
-                    <button
-                      onClick={handleSignOut}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      Sign Out
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
+            {!isAuthenticated && (
               // Not authenticated - show sign in button
               <Link href="/login" className="btn-primary">
                 Sign In
@@ -190,30 +145,7 @@ export function Header() {
                 )}
                 <div className="py-6">
                   <div className="flex flex-col space-y-4">
-                    {isAuthenticated ? (
-                      <>
-                        <div className="px-3 py-2 text-sm text-gray-700 border-b border-gray-100">
-                          <div className="font-medium">{user?.firstName} {user?.lastName}</div>
-                          <div className="text-gray-500">{user?.email}</div>
-                        </div>
-                        <Link 
-                          href="/dashboard" 
-                          className="text-base font-semibold leading-7 text-gray-900 hover:text-primary-600"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          Dashboard
-                        </Link>
-                        <button
-                          onClick={() => {
-                            handleSignOut();
-                            setMobileMenuOpen(false);
-                          }}
-                          className="text-base font-semibold leading-7 text-gray-900 hover:text-primary-600 text-left"
-                        >
-                          Sign Out
-                        </button>
-                      </>
-                    ) : (
+                    {!isAuthenticated && (
                       <Link 
                         href="/login" 
                         className="btn-primary"
@@ -231,12 +163,7 @@ export function Header() {
       )}
       
       {/* Click outside to close profile menu */}
-      {profileMenuOpen && (
-        <div 
-          className="fixed inset-0 z-40" 
-          onClick={() => setProfileMenuOpen(false)}
-        />
-      )}
+      {/* This block was removed as per the edit hint */}
     </header>
   );
 }
