@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { FunnelIcon, ChartBarIcon, CalendarIcon } from '@heroicons/react/24/outline';
+import { 
+  ChartBarIcon
+} from '@heroicons/react/24/outline';
 
 const dataTypes = [
   { id: 'temperature', name: 'Temperature', icon: ChartBarIcon },

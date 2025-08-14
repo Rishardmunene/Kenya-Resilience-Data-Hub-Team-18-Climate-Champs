@@ -50,7 +50,16 @@ export async function POST(request: NextRequest) {
     );
 
     // Return user data (without password) and token
-    const { password_hash, ...userWithoutPassword } = user;
+    const userWithoutPassword = {
+      id: user.id,
+      email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      role: user.role,
+      organization: user.organization,
+      created_at: user.created_at,
+      updated_at: user.updated_at
+    };
     
     return NextResponse.json({
       message: 'Login successful',

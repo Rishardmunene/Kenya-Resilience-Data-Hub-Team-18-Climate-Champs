@@ -7,7 +7,7 @@ export function ContactSection() {
             Get in Touch
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Have questions about our platform or want to collaborate? We'd love to hear from you.
+            Have questions about our platform or want to collaborate? We&apos;d love to hear from you.
           </p>
         </div>
 

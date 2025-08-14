@@ -2,7 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { neon } from '@neondatabase/serverless';
 
-function verifyToken(authHeader: string | null) {
+interface JWTPayload {
+  userId: string;
+  email: string;
+  role: string;
+  iat: number;
+  exp: number;
+}
+
+function verifyToken(authHeader: string | null): JWTPayload | null {
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return null;
   }
@@ -10,7 +18,7 @@ function verifyToken(authHeader: string | null) {
   const token = authHeader.substring(7);
   
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-super-secret-jwt-key') as any;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-super-secret-jwt-key') as JWTPayload;
     return decoded;
   } catch (error) {
     return null;

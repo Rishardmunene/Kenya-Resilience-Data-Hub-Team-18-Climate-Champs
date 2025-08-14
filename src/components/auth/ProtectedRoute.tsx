@@ -35,7 +35,6 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
           throw new Error('Token verification failed');
         }
 
-        const data = await response.json();
         setIsAuthenticated(true);
       } catch (error) {
         console.error('Token verification error:', error);

@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import bcrypt from 'bcryptjs';
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     const sql = neon(process.env.DATABASE_URL!);
     

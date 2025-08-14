@@ -4,14 +4,22 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { BellIcon, CogIcon, UserCircleIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 
+interface User {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  organization?: string;
+}
+
 export function DashboardHeader() {
   const [selectedRegion, setSelectedRegion] = useState('All Kenya');
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    // Get user data from localStorage
     const userData = localStorage.getItem('user');
     if (userData) {
       setUser(JSON.parse(userData));
@@ -33,7 +41,7 @@ export function DashboardHeader() {
             Kenya Climate Resilience Dashboard
           </h1>
           <p className="mt-1 text-sm text-gray-600">
-            Welcome back! Here's your environmental insights overview.
+            Welcome back! Here&apos;s your environmental insights overview.
           </p>
         </div>
         
@@ -47,7 +55,7 @@ export function DashboardHeader() {
               id="region"
               value={selectedRegion}
               onChange={(e) => setSelectedRegion(e.target.value)}
-              className="input-field text-sm"
+              className="text-sm border border-gray-300 rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               <option value="All Kenya">All Kenya</option>
               <option value="Nairobi">Nairobi</option>
@@ -95,7 +103,6 @@ export function DashboardHeader() {
         </div>
       </div>
       
-      {/* Click outside to close profile menu */}
       {profileMenuOpen && (
         <div 
           className="fixed inset-0 z-40" 

@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
-import { Bars3Icon, XMarkIcon, UserCircleIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { usePathname } from 'next/navigation';
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 
 const navigation = [
   { name: 'Home', href: '#home', current: true },
@@ -17,30 +17,26 @@ const navigation = [
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    // Check authentication status on component mount
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
     
     if (token && userData) {
       setIsAuthenticated(true);
-      // setUser(JSON.parse(userData)); // This line was removed as per the edit hint
+    } else {
+      setIsAuthenticated(false);
     }
-  }, []);
+  }, [pathname]);
 
   const handleSmoothScroll = (href: string) => {
-    if (href.startsWith('#')) {
-      const element = document.querySelector(href);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
+    const element = document.querySelector(href);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
-  // Don't show landing page navigation on dashboard
   const isDashboard = pathname === '/dashboard';
   const isLoginPage = pathname === '/login';
 
@@ -70,16 +66,13 @@ export function Header() {
           </button>
         </div>
         
-        {/* Desktop Navigation - Only show on landing page */}
         {!isDashboard && !isLoginPage && (
           <div className="hidden lg:flex lg:gap-x-12">
             {navigation.map((item) => (
               <button
                 key={item.name}
                 onClick={() => handleSmoothScroll(item.href)}
-                className={`text-sm font-semibold leading-6 ${
-                  item.current ? 'text-primary-600' : 'text-gray-900 hover:text-primary-600'
-                }`}
+                className="text-sm font-semibold leading-6 text-gray-900 hover:text-primary-600 transition-colors"
               >
                 {item.name}
               </button>
@@ -90,7 +83,6 @@ export function Header() {
         <div className="hidden lg:flex lg:flex-1 lg:justify-end">
           <div className="flex items-center space-x-4">
             {!isAuthenticated && (
-              // Not authenticated - show sign in button
               <Link href="/login" className="btn-primary">
                 Sign In
               </Link>
@@ -99,7 +91,6 @@ export function Header() {
         </div>
       </nav>
       
-      {/* Mobile menu */}
       {mobileMenuOpen && (
         <div className="lg:hidden">
           <div className="fixed inset-0 z-50" />
@@ -125,45 +116,35 @@ export function Header() {
             </div>
             <div className="mt-6 flow-root">
               <div className="-my-6 divide-y divide-gray-500/10">
-                {!isDashboard && !isLoginPage && (
-                  <div className="space-y-2 py-6">
-                    {navigation.map((item) => (
-                      <button
-                        key={item.name}
-                        onClick={() => {
-                          handleSmoothScroll(item.href);
-                          setMobileMenuOpen(false);
-                        }}
-                        className={`-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 ${
-                          item.current ? 'text-primary-600' : 'text-gray-900 hover:bg-gray-50'
-                        }`}
-                      >
-                        {item.name}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                <div className="space-y-2 py-6">
+                  {navigation.map((item) => (
+                    <button
+                      key={item.name}
+                      onClick={() => {
+                        handleSmoothScroll(item.href);
+                        setMobileMenuOpen(false);
+                      }}
+                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
+                    >
+                      {item.name}
+                    </button>
+                  ))}
+                </div>
                 <div className="py-6">
-                  <div className="flex flex-col space-y-4">
-                    {!isAuthenticated && (
-                      <Link 
-                        href="/login" 
-                        className="btn-primary"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Sign In
-                      </Link>
-                    )}
-                  </div>
+                  {!isAuthenticated && (
+                    <Link
+                      href="/login"
+                      className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
+                    >
+                      Sign In
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         </div>
       )}
-      
-      {/* Click outside to close profile menu */}
-      {/* This block was removed as per the edit hint */}
     </header>
   );
 }

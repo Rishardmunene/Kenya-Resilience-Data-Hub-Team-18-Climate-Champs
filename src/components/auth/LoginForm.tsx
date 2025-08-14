@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export function LoginForm() {
   const [formData, setFormData] = useState({
@@ -123,11 +124,11 @@ export function LoginForm() {
           </div>
 
           <div className="text-center">
-            <p className="text-sm text-gray-600">
-              Don't have an account?{' '}
-              <a href="/register" className="font-medium text-primary-600 hover:text-primary-500">
-                Register here
-              </a>
+            <p className="text-sm text-gray-600 mt-2">
+              Don&apos;t have an account?{' '}
+              <Link href="/register" className="text-primary-600 hover:text-primary-700 font-medium">
+                Sign up here
+              </Link>
             </p>
           </div>
         </form>

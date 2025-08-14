@@ -1,6 +1,10 @@
 'use client';
 
-import { CloudIcon, SunIcon, ExclamationTriangleIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { 
+  CloudIcon, 
+  SunIcon,
+  CheckCircleIcon
+} from '@heroicons/react/24/outline';
 
 const climateData = [
   {
