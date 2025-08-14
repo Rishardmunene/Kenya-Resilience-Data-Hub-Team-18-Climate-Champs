@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "name": "kenya-climate-resilience-dashboard",
   "builds": [
     {
       "src": "package.json",
@@ -11,25 +10,14 @@
     {
       "src": "/api/(.*)",
       "dest": "/api/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
     }
   ],
   "env": {
-    "NODE_ENV": "production",
-    "NEXTAUTH_URL": "@nextauth_url",
-    "NEXTAUTH_SECRET": "@nextauth_secret",
-    "DATABASE_URL": "@database_url",
-    "REDIS_URL": "@redis_url",
-    "API_BASE_URL": "@api_base_url"
+    "NODE_ENV": "production"
   },
   "functions": {
-    "app/api/**/*.ts": {
+    "src/app/api/**/*.ts": {
       "maxDuration": 30
     }
-  },
-  "regions": ["iad1"],
-  "public": true
+  }
 }

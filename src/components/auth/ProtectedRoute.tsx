@@ -13,18 +13,18 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const user = localStorage.getItem('user');
-
-    if (!token || !user) {
-      router.push('/login');
-      return;
-    }
-
-    // Verify token with backend
     const verifyToken = async () => {
+      const token = localStorage.getItem('token');
+      const user = localStorage.getItem('user');
+
+      if (!token || !user) {
+        setLoading(false);
+        router.push('/login');
+        return;
+      }
+
       try {
-        const response = await fetch('http://localhost:8000/api/auth/profile', {
+        const response = await fetch('/api/auth/profile', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -32,12 +32,13 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
         });
 
         if (!response.ok) {
-          throw new Error('Invalid token');
+          throw new Error('Token verification failed');
         }
 
+        const data = await response.json();
         setIsAuthenticated(true);
       } catch (error) {
-        console.error('Token verification failed:', error);
+        console.error('Token verification error:', error);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         router.push('/login');
