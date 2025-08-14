@@ -5,15 +5,25 @@ import Link from 'next/link';
 import { Bars3Icon, XMarkIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 
 const navigation = [
-  { name: 'Dashboard', href: '/', current: true },
-  { name: 'Data Explorer', href: '/explorer', current: false },
-  { name: 'Reports', href: '/reports', current: false },
-  { name: 'Alerts', href: '/alerts', current: false },
-  { name: 'About', href: '/about', current: false },
+  { name: 'Home', href: '#home', current: true },
+  { name: 'About', href: '#about', current: false },
+  { name: 'Features', href: '#features', current: false },
+  { name: 'Partners', href: '#partners', current: false },
+  { name: 'News', href: '#news', current: false },
+  { name: 'Contact', href: '#contact', current: false },
 ];
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleSmoothScroll = (href: string) => {
+    if (href.startsWith('#')) {
+      const element = document.querySelector(href);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
@@ -43,26 +53,26 @@ export function Header() {
         
         <div className="hidden lg:flex lg:gap-x-12">
           {navigation.map((item) => (
-            <Link
+            <button
               key={item.name}
-              href={item.href}
+              onClick={() => handleSmoothScroll(item.href)}
               className={`text-sm font-semibold leading-6 ${
                 item.current ? 'text-primary-600' : 'text-gray-900 hover:text-primary-600'
               }`}
             >
               {item.name}
-            </Link>
+            </button>
           ))}
         </div>
         
         <div className="hidden lg:flex lg:flex-1 lg:justify-end">
           <div className="flex items-center space-x-4">
-            <button className="text-sm font-medium text-gray-900 hover:text-primary-600">
-              Sign in
-            </button>
-            <button className="btn-primary">
-              Get Started
-            </button>
+            <Link href="/login" className="text-sm font-medium text-gray-900 hover:text-primary-600">
+              Sign In
+            </Link>
+            <Link href="/dashboard" className="btn-primary">
+              Dashboard
+            </Link>
           </div>
         </div>
       </nav>
@@ -95,26 +105,28 @@ export function Header() {
               <div className="-my-6 divide-y divide-gray-500/10">
                 <div className="space-y-2 py-6">
                   {navigation.map((item) => (
-                    <Link
+                    <button
                       key={item.name}
-                      href={item.href}
+                      onClick={() => {
+                        handleSmoothScroll(item.href);
+                        setMobileMenuOpen(false);
+                      }}
                       className={`-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 ${
                         item.current ? 'text-primary-600' : 'text-gray-900 hover:bg-gray-50'
                       }`}
-                      onClick={() => setMobileMenuOpen(false)}
                     >
                       {item.name}
-                    </Link>
+                    </button>
                   ))}
                 </div>
                 <div className="py-6">
                   <div className="flex flex-col space-y-4">
-                    <button className="text-base font-semibold leading-7 text-gray-900 hover:text-primary-600">
-                      Sign in
-                    </button>
-                    <button className="btn-primary">
-                      Get Started
-                    </button>
+                    <Link href="/login" className="text-base font-semibold leading-7 text-gray-900 hover:text-primary-600">
+                      Sign In
+                    </Link>
+                    <Link href="/dashboard" className="btn-primary">
+                      Dashboard
+                    </Link>
                   </div>
                 </div>
               </div>
