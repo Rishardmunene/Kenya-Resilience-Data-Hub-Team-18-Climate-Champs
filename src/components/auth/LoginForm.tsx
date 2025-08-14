@@ -132,13 +132,7 @@ export function LoginForm() {
           </div>
         </form>
 
-        <div className="mt-6 bg-gray-50 p-4 rounded-lg">
-          <h3 className="text-sm font-medium text-gray-900 mb-2">Demo Credentials:</h3>
-          <div className="text-xs text-gray-600 space-y-1">
-            <p><strong>Email:</strong> admin@kcrd.ke</p>
-            <p><strong>Password:</strong> admin123456</p>
-          </div>
-        </div>
+
       </div>
     </div>
   );

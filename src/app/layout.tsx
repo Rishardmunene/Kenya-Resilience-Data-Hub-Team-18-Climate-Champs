@@ -2,8 +2,6 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/providers/Providers';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
 import { Toaster } from 'react-hot-toast';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -41,13 +39,7 @@ export default function RootLayout({
     <html lang="en" className="h-full">
       <body className={`${inter.className} h-full bg-gray-50`}>
         <Providers>
-          <div className="min-h-screen flex flex-col">
-            <Header />
-            <main className="flex-1">
-              {children}
-            </main>
-            <Footer />
-          </div>
+          {children}
           <Toaster
             position="top-right"
             toastOptions={{
