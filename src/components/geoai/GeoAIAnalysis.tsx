@@ -67,7 +67,7 @@ const KENYA_COUNTIES = [
   { name: 'Nyandarua', latitude: -0.5333, longitude: 36.5333, county_code: '018' },
   { name: 'Nyeri', latitude: -0.4167, longitude: 36.9500, county_code: '019' },
   { name: 'Kirinyaga', latitude: -0.5000, longitude: 37.3333, county_code: '020' },
-  { name: 'Murang\'a', latitude: -0.7833, longitude: 37.1333, county_code: '021' },
+  { name: 'Murang&apos;a', latitude: -0.7833, longitude: 37.1333, county_code: '021' },
   { name: 'Kiambu', latitude: -1.1833, longitude: 36.8333, county_code: '022' },
   { name: 'Turkana', latitude: 3.1167, longitude: 35.6000, county_code: '023' },
   { name: 'West Pokot', latitude: 1.4000, longitude: 35.1167, county_code: '024' },
@@ -306,7 +306,7 @@ export function GeoAIAnalysis() {
           <div>
             <h2 className="text-xl font-bold text-gray-900">GeoAI Climate Analysis</h2>
             <p className="text-sm text-gray-600">
-              AI-powered geospatial analysis for Kenya's climate resilience
+              AI-powered geospatial analysis for Kenya&apos;s climate resilience
             </p>
           </div>
         </div>

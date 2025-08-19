@@ -142,13 +142,12 @@ export function ClimateOverview() {
 
       {/* Temperature Chart */}
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Temperature Trends (Last 30 Days)</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Interactive Climate Data</h3>
         <TemperatureChart 
           data={temperatureData}
-          title="Kenya Temperature Trends"
-          height={300}
-          showHumidity={true}
-          showRainfall={true}
+          title="Kenya Climate Data"
+          height={500}
+          showControls={true}
         />
       </div>
 
