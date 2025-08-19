@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # Frontend Next.js Application
+  # Frontend (Next.js)
   frontend:
     build:
       context: .
@@ -9,55 +9,37 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - DATABASE_URL=postgresql://postgres:password@postgres:5432/kcrd_db
-      - NEXTAUTH_URL=http://localhost:3000
-      - NEXTAUTH_SECRET=your-secret-key-here
-      - API_BASE_URL=http://api:8000
-      - REDIS_URL=redis://redis:6379
+      - GEOAI_API_URL=http://geoai-api:8001
+    volumes:
+      - .:/app
+      - /app/node_modules
     depends_on:
       - postgres
       - redis
-      - api
+      - geoai-api
     networks:
       - kcrd-network
-    restart: unless-stopped
 
-  # Backend API Service
-  api:
+  # GeoAI Python API
+  geoai-api:
     build:
-      context: ./services/api
+      context: ./services/geoai-api
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "8001:8001"
     environment:
       - DATABASE_URL=postgresql://postgres:password@postgres:5432/kcrd_db
       - REDIS_URL=redis://redis:6379
-      - JWT_SECRET=your-jwt-secret-here
-      - CORS_ORIGIN=http://localhost:3000
+    volumes:
+      - ./services/geoai-api:/app
+      - geoai-data:/app/data
     depends_on:
       - postgres
       - redis
     networks:
       - kcrd-network
-    restart: unless-stopped
-
-  # Data Processing Service
-  data-processor:
-    build:
-      context: ./services/data-processor
-      dockerfile: Dockerfile
-    environment:
-      - DATABASE_URL=postgresql://postgres:password@postgres:5432/kcrd_db
-      - REDIS_URL=redis://redis:6379
-      - API_BASE_URL=http://api:8000
-    depends_on:
-      - postgres
-      - redis
-      - api
-    networks:
-      - kcrd-network
-    restart: unless-stopped
 
   # PostgreSQL Database
   postgres:
@@ -70,10 +52,9 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./services/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./services/database/init-simple.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - kcrd-network
-    restart: unless-stopped
 
   # Redis Cache
   redis:
@@ -84,58 +65,24 @@ services:
       - redis_data:/data
     networks:
       - kcrd-network
-    restart: unless-stopped
 
   # Nginx Reverse Proxy
   nginx:
     image: nginx:alpine
     ports:
       - "80:80"
-      - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/ssl:/etc/nginx/ssl
     depends_on:
       - frontend
-      - api
+      - geoai-api
     networks:
       - kcrd-network
-    restart: unless-stopped
-
-  # Monitoring Service
-  monitoring:
-    image: prom/prometheus:latest
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
-    networks:
-      - kcrd-network
-    restart: unless-stopped
-
-  # Grafana Dashboard
-  grafana:
-    image: grafana/grafana:latest
-    ports:
-      - "3001:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
-      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
-    depends_on:
-      - monitoring
-    networks:
-      - kcrd-network
-    restart: unless-stopped
 
 volumes:
   postgres_data:
   redis_data:
-  prometheus_data:
-  grafana_data:
+  geoai-data:
 
 networks:
   kcrd-network:
