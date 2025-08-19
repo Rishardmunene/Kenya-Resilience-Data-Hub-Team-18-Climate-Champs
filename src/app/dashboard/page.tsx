@@ -2,7 +2,6 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { ClimateOverview } from '@/components/dashboard/ClimateOverview';
 import { GeoAIAnalysis } from '@/components/geoai/GeoAIAnalysis';
-import { DataExplorer } from '@/components/dashboard/DataExplorer';
 import { KenyaMap } from '@/components/maps/KenyaMap';
 
 export default function DashboardPage() {
@@ -37,9 +36,6 @@ export default function DashboardPage() {
             
             {/* GeoAI Analysis */}
             <GeoAIAnalysis />
-            
-            {/* Data Explorer */}
-            <DataExplorer />
           </div>
         </div>
       </div>

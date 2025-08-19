@@ -13,7 +13,7 @@ import {
   Filler,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-import { ChevronDownIcon, CalendarIcon, MapIcon } from '@heroicons/react/24/outline';
+import { CalendarIcon, MapIcon } from '@heroicons/react/24/outline';
 
 ChartJS.register(
   CategoryScale,
@@ -89,7 +89,7 @@ export function TemperatureChart({
 
     // Filter by time range
     const now = new Date();
-    let startDate = new Date();
+    const startDate = new Date();
     
     switch (selectedTimeRange) {
       case '7days':
@@ -275,6 +275,38 @@ export function TemperatureChart({
     });
   };
 
+  const getSelectedRegionsText = () => {
+    if (selectedRegions.length === 1) {
+      return KENYA_REGIONS.find(r => r.id === selectedRegions[0])?.name || selectedRegions[0];
+    }
+    return `${selectedRegions.length} Regions`;
+  };
+
+  const getTimeRangeText = () => {
+    switch (selectedTimeRange) {
+      case '7days':
+        return 'Last 7 Days';
+      case '30days':
+        return 'Last 30 Days';
+      case '3months':
+        return 'Last 3 Months';
+      case '6months':
+        return 'Last 6 Months';
+      default:
+        return 'Last 7 Days';
+    }
+  };
+
+  const toggleRegion = (regionId: string) => {
+    setSelectedRegions(prev => {
+      if (prev.includes(regionId)) {
+        return prev.filter(id => id !== regionId);
+      } else {
+        return [...prev, regionId];
+      }
+    });
+  };
+
   const getScaleOptions = () => {
     const baseScales: any = {
       x: {
@@ -366,38 +398,6 @@ export function TemperatureChart({
       intersect: false,
     },
     scales: getScaleOptions(),
-  };
-
-  const getSelectedRegionsText = () => {
-    if (selectedRegions.length === 1) {
-      return KENYA_REGIONS.find(r => r.id === selectedRegions[0])?.name || selectedRegions[0];
-    }
-    return `${selectedRegions.length} Regions`;
-  };
-
-  const getTimeRangeText = () => {
-    switch (selectedTimeRange) {
-      case '7days':
-        return 'Last 7 Days';
-      case '30days':
-        return 'Last 30 Days';
-      case '3months':
-        return 'Last 3 Months';
-      case '6months':
-        return 'Last 6 Months';
-      default:
-        return 'Last 7 Days';
-    }
-  };
-
-  const toggleRegion = (regionId: string) => {
-    setSelectedRegions(prev => {
-      if (prev.includes(regionId)) {
-        return prev.filter(id => id !== regionId);
-      } else {
-        return [...prev, regionId];
-      }
-    });
   };
 
   if (!chartData) {
