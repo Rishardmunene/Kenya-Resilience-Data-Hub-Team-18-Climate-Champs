@@ -1,10 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
 const GEOAI_API_URL = process.env.GEOAI_API_URL || 'http://localhost:8001';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    // Forward request to GeoAI Python service
     const response = await fetch(`${GEOAI_API_URL}/analysis-types`, {
       method: 'GET',
       headers: {

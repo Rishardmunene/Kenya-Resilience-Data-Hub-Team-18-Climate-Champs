@@ -13,7 +13,7 @@ import {
 } from '@/utils/geoData';
 
 // Fix Leaflet marker icons
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
@@ -78,7 +78,7 @@ export function KenyaMap({
 
   // Style function for GeoJSON regions
   const getRegionStyle = (feature: any) => {
-    const regionName = feature.properties.name || feature.properties.NAME || '';
+    const regionName = (feature.properties?.name || feature.properties?.NAME || '') as string;
     const isSelected = selectedRegion && regionName.toLowerCase() === selectedRegion.toLowerCase();
     
     return {
@@ -91,8 +91,8 @@ export function KenyaMap({
   };
 
   // Handle region click
-  const handleRegionClick = (feature: any, layer: L.Layer) => {
-    const regionName = feature.properties.name || feature.properties.NAME || '';
+  const handleRegionClick = (feature: any) => {
+    const regionName = (feature.properties?.name || feature.properties?.NAME || '') as string;
     const region = regions.find(r => r.name === regionName);
     
     if (region && onRegionClick) {
@@ -109,7 +109,7 @@ export function KenyaMap({
 
   // Create popup content for regions
   const createRegionPopup = (feature: any) => {
-    const regionName = feature.properties.name || feature.properties.NAME || 'Unknown Region';
+    const regionName = (feature.properties?.name || feature.properties?.NAME || 'Unknown Region') as string;
     const regionData = getClimateDataForRegion(regionName);
     
     let popupContent = `<h3 class="font-bold text-lg mb-2">${regionName}</h3>`;
@@ -182,7 +182,7 @@ export function KenyaMap({
           style={getRegionStyle}
           onEachFeature={(feature, layer) => {
             layer.on({
-              click: () => handleRegionClick(feature, layer)
+              click: () => handleRegionClick(feature)
             });
             
             // Add popup

@@ -5,9 +5,7 @@ export interface GeoJSONFeature {
     type: 'Polygon' | 'MultiPolygon';
     coordinates: number[][][] | number[][][][];
   };
-  properties: {
-    [key: string]: any;
-  };
+  properties: Record<string, unknown>;
 }
 
 export interface GeoJSONCollection {
@@ -19,9 +17,7 @@ export interface KenyaRegion {
   name: string;
   county_code: string;
   geometry: GeoJSONFeature['geometry'];
-  properties: {
-    [key: string]: any;
-  };
+  properties: Record<string, unknown>;
 }
 
 // Load Kenya boundaries from GeoJSON file
@@ -43,16 +39,16 @@ export function extractRegions(geoJSON: GeoJSONCollection): KenyaRegion[] {
   return geoJSON.features.map((feature, index) => {
     // Try to extract region name from properties
     const properties = feature.properties || {};
-    const name = properties.name || 
+    const name = (properties.name || 
                  properties.NAME || 
                  properties.county_name || 
                  properties.COUNTY_NAME || 
-                 `Region ${index + 1}`;
+                 `Region ${index + 1}`) as string;
     
-    const countyCode = properties.county_code || 
+    const countyCode = (properties.county_code || 
                       properties.COUNTY_CODE || 
                       properties.code || 
-                      String(index + 1).padStart(3, '0');
+                      String(index + 1).padStart(3, '0')) as string;
 
     return {
       name,
@@ -67,7 +63,7 @@ export function extractRegions(geoJSON: GeoJSONCollection): KenyaRegion[] {
 export function getRegionByName(regions: KenyaRegion[], name: string): KenyaRegion | undefined {
   return regions.find(region => 
     region.name.toLowerCase() === name.toLowerCase() ||
-    region.properties.name?.toLowerCase() === name.toLowerCase()
+    (region.properties.name as string)?.toLowerCase() === name.toLowerCase()
   );
 }
 
@@ -81,12 +77,12 @@ export function calculateRegionArea(geometry: GeoJSONFeature['geometry']): numbe
   // This is a simplified area calculation
   // For more accurate results, use a proper geospatial library
   if (geometry.type === 'Polygon') {
-    const coordinates = geometry.coordinates[0];
+    const coordinates = geometry.coordinates[0] as number[][];
     let area = 0;
     
     for (let i = 0; i < coordinates.length - 1; i++) {
-      const [lon1, lat1] = coordinates[i];
-      const [lon2, lat2] = coordinates[i + 1];
+      const [lon1, lat1] = coordinates[i] as [number, number];
+      const [lon2, lat2] = coordinates[i + 1] as [number, number];
       area += (lon2 - lon1) * (lat2 + lat1) / 2;
     }
     
@@ -107,8 +103,9 @@ export function getRegionBounds(geometry: GeoJSONFeature['geometry']): {
   let minLon = Infinity, maxLon = -Infinity;
 
   if (geometry.type === 'Polygon') {
-    const coordinates = geometry.coordinates[0];
-    coordinates.forEach(([lon, lat]) => {
+    const coordinates = geometry.coordinates[0] as number[][];
+    coordinates.forEach((coord) => {
+      const [lon, lat] = coord as [number, number];
       minLat = Math.min(minLat, lat);
       maxLat = Math.max(maxLat, lat);
       minLon = Math.min(minLon, lon);
@@ -133,7 +130,7 @@ export function convertToLeafletFormat(geoJSON: GeoJSONCollection) {
       geometry: feature.geometry,
       properties: {
         ...feature.properties,
-        popupContent: feature.properties.name || feature.properties.NAME || 'Unknown Region'
+        popupContent: (feature.properties.name || feature.properties.NAME || 'Unknown Region') as string
       }
     }))
   };
@@ -165,10 +162,11 @@ export function isWithinKenya(lat: number, lon: number): boolean {
 // Get region center point
 export function getRegionCenter(geometry: GeoJSONFeature['geometry']): [number, number] {
   if (geometry.type === 'Polygon') {
-    const coordinates = geometry.coordinates[0];
+    const coordinates = geometry.coordinates[0] as number[][];
     let sumLat = 0, sumLon = 0;
     
-    coordinates.forEach(([lon, lat]) => {
+    coordinates.forEach((coord) => {
+      const [lon, lat] = coord as [number, number];
       sumLat += lat;
       sumLon += lon;
     });
