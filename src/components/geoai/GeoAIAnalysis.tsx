@@ -31,6 +31,8 @@ interface AnalysisResult {
   analysis_id: string;
   region_name: string;
   analysis_type: string;
+  satellite_source?: string;
+  radius_km?: number;
   results: Record<string, unknown>;
   metadata: Record<string, unknown>;
   created_at: string;
@@ -161,6 +163,8 @@ export function GeoAIAnalysis() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [analysisResults, setAnalysisResults] = useState<AnalysisResult[]>([]);
   const [currentAnalysis, setCurrentAnalysis] = useState<AnalysisResult | null>(null);
+  const [selectedAnalysisForView, setSelectedAnalysisForView] = useState<AnalysisResult | null>(null);
+  const [showResultsModal, setShowResultsModal] = useState<boolean>(false);
 
   // Load Kenya regions from GeoJSON data
   useEffect(() => {
@@ -297,6 +301,125 @@ export function GeoAIAnalysis() {
     });
   };
 
+  const viewAnalysisResults = (analysis: AnalysisResult) => {
+    setSelectedAnalysisForView(analysis);
+    setShowResultsModal(true);
+  };
+
+  const closeResultsModal = () => {
+    setShowResultsModal(false);
+    setSelectedAnalysisForView(null);
+  };
+
+  const renderAnalysisResults = (analysis: AnalysisResult) => {
+    const results = analysis.results as any;
+    
+    switch (analysis.analysis_type) {
+      case 'land_cover_classification':
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-blue-900">Land Cover Breakdown</h4>
+                <div className="mt-2 space-y-2">
+                  {results.area_breakdown && Object.entries(results.area_breakdown).map(([landType, percentage]) => (
+                    <div key={landType} className="flex justify-between">
+                      <span className="text-sm text-blue-700">{landType}</span>
+                      <span className="text-sm font-medium text-blue-900">{String(percentage)}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-green-900">Analysis Metrics</h4>
+                <div className="mt-2 space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-green-700">Accuracy</span>
+                    <span className="text-sm font-medium text-green-900">{results.classification_accuracy}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-green-700">Total Area</span>
+                    <span className="text-sm font-medium text-green-900">{results.total_area_km2} km²</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'vegetation_health':
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-green-900">NDVI Values</h4>
+                <div className="mt-2 space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-green-700">Average NDVI</span>
+                    <span className="text-sm font-medium text-green-900">{results.ndvi_values?.mean}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-green-700">Health Score</span>
+                    <span className="text-sm font-medium text-green-900">{results.vegetation_health?.health_score}/10</span>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-blue-900">Vegetation Status</h4>
+                <div className="mt-2 space-y-2">
+                  {results.vegetation_health && Object.entries(results.vegetation_health).map(([status, percentage]) => (
+                    <div key={status} className="flex justify-between">
+                      <span className="text-sm text-blue-700">{status}</span>
+                      <span className="text-sm font-medium text-blue-900">{String(percentage)}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'water_body_detection':
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-blue-900">Water Bodies Found</h4>
+                <div className="mt-2 space-y-2">
+                  {results.water_bodies?.map((body: any, index: number) => (
+                    <div key={index} className="text-sm text-blue-700">
+                      <strong>{body.name}</strong> ({body.type})
+                      {body.area_km2 && <span className="block text-xs">Area: {body.area_km2} km²</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="bg-cyan-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-cyan-900">Water Quality</h4>
+                <div className="mt-2 space-y-2">
+                                     {results.water_quality && Object.entries(results.water_quality).map(([metric, value]) => (
+                     <div key={metric} className="flex justify-between">
+                       <span className="text-sm text-cyan-700">{metric}</span>
+                       <span className="text-sm font-medium text-cyan-900">{String(value)}</span>
+                     </div>
+                   ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return (
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <pre className="text-sm text-gray-700 whitespace-pre-wrap">
+              {JSON.stringify(results, null, 2)}
+            </pre>
+          </div>
+        );
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -316,16 +439,16 @@ export function GeoAIAnalysis() {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Start New Analysis</h3>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Region Selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
               Kenya County *
             </label>
             <select
               value={selectedRegion}
               onChange={(e) => setSelectedRegion(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
             >
               <option value="">Select a county</option>
               {regions.map((region) => (
@@ -338,13 +461,13 @@ export function GeoAIAnalysis() {
 
           {/* Analysis Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
               Analysis Type *
             </label>
             <select
               value={selectedAnalysisType}
               onChange={(e) => setSelectedAnalysisType(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
             >
               <option value="">Select analysis type</option>
               {analysisTypes.map((type) => (
@@ -357,13 +480,13 @@ export function GeoAIAnalysis() {
 
           {/* Satellite Source */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
               Satellite Source
             </label>
             <select
               value={selectedSatelliteSource}
               onChange={(e) => setSelectedSatelliteSource(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
             >
               <option value="sentinel-2">Sentinel-2 (Optical)</option>
               <option value="sentinel-1">Sentinel-1 (Radar)</option>
@@ -373,33 +496,33 @@ export function GeoAIAnalysis() {
 
           {/* Start Date */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
               Start Date *
             </label>
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
             />
           </div>
 
           {/* End Date */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
               End Date *
             </label>
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
             />
           </div>
 
           {/* Radius */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
               Analysis Radius (km)
             </label>
             <input
@@ -408,7 +531,7 @@ export function GeoAIAnalysis() {
               onChange={(e) => setRadiusKm(Number(e.target.value))}
               min="1"
               max="50"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
             />
           </div>
         </div>
@@ -481,7 +604,8 @@ export function GeoAIAnalysis() {
             {analysisResults.map((analysis) => (
               <div
                 key={analysis.analysis_id}
-                className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
+                className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                onClick={() => analysis.status === 'completed' && viewAnalysisResults(analysis)}
               >
                 <div className="flex items-center space-x-3">
                   {getAnalysisTypeIcon(analysis.analysis_type)}
@@ -499,12 +623,103 @@ export function GeoAIAnalysis() {
                   <span className="text-sm text-gray-600">
                     {analysis.status.charAt(0).toUpperCase() + analysis.status.slice(1)}
                   </span>
+                  {analysis.status === 'completed' && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        viewAnalysisResults(analysis);
+                      }}
+                      className="ml-2 px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
+                    >
+                      View Results
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* Results Modal */}
+      {showResultsModal && selectedAnalysisForView && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  {getAnalysisTypeIcon(selectedAnalysisForView.analysis_type)}
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">
+                      {analysisTypes.find(t => t.id === selectedAnalysisForView.analysis_type)?.name || selectedAnalysisForView.analysis_type}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {selectedAnalysisForView.region_name} • {formatDate(selectedAnalysisForView.created_at)}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={closeResultsModal}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <div className="mb-6">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Analysis Results</h4>
+                {renderAnalysisResults(selectedAnalysisForView)}
+              </div>
+              
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-gray-900 mb-2">Analysis Metadata</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-600">Analysis ID:</span>
+                    <span className="ml-2 font-mono text-gray-900">{selectedAnalysisForView.analysis_id}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Satellite Source:</span>
+                    <span className="ml-2 text-gray-900">{selectedAnalysisForView.satellite_source}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Radius:</span>
+                    <span className="ml-2 text-gray-900">{selectedAnalysisForView.radius_km} km</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Processing Time:</span>
+                    <span className="ml-2 text-gray-900">{String(selectedAnalysisForView.metadata?.processing_time_ms || 0)}ms</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={closeResultsModal}
+                  className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    // TODO: Implement export functionality
+                    alert('Export functionality coming soon!');
+                  }}
+                  className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
+                >
+                  Export Results
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
