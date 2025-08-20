@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const GEOAI_API_URL = process.env.GEOAI_API_URL || 'http://localhost:8001';
-
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -9,21 +7,24 @@ export async function GET(
   try {
     const analysisId = params.id;
     
-    // Forward request to GeoAI Python service
-    const response = await fetch(`${GEOAI_API_URL}/analysis/${analysisId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`GeoAI API error: ${response.status}`);
+    // Get analysis from memory store (serverless-compatible)
+    if (!(global as any).analysisStore) {
+      return NextResponse.json(
+        { error: 'Analysis not found' },
+        { status: 404 }
+      );
     }
 
-    const result = await response.json();
+    const analysis = (global as any).analysisStore.get(analysisId);
     
-    return NextResponse.json(result);
+    if (!analysis) {
+      return NextResponse.json(
+        { error: 'Analysis not found' },
+        { status: 404 }
+      );
+    }
+    
+    return NextResponse.json(analysis);
 
   } catch (error) {
     console.error('Error in GeoAI analysis endpoint:', error);
